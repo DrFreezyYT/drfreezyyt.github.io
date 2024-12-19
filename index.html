@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Allgemeines Styling */
+        * {
+            background-color: bisque;
+            align-items: center;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 20px;
+        }
+
+        /* Titel */
+        h1 {
+            text-align: center;
+            outline: auto;
+            outline-style: groove;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #f8f1e1;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Eingabefeld und Button-Container */
+        #3 {
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Eingabefeld */
+        input {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Button */
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #5a6268;
+        }
+
+        /* Liste */
+        #2 {
+            margin: 20px auto;
+            padding: 10px;
+            width: 50%;
+            text-align: left;
+            background-color: #fff8e7;
+            border: 1px solid #e3dcd0;
+            border-radius: 5px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Listeneintrag */
+        #2 div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #f9f4eb;
+            border-radius: 5px;
+            box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Text im Listeneintrag */
+        #2 div:first-child {
+            flex: 1;
+        }
+
+        /* Löschen-Schaltfläche im Listeneintrag */
+        #2 button {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #2 button:hover {
+            background-color: #c82333;
+        }
+
+        #clearAll {
+            background-color: red;
+            color: white;
+            font-size: 16px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: none;
+            /* Standardmäßig versteckt */
+        }
+
+        #clearAll:hover {
+            background-color: darkred;
+            transform: scale(1.05);
+        }
+    </style>
+    <script>
+        function addElement() {
+            const inputFieldText = document.getElementById('1').value; // ID des Input-Felds
+            const ul = document.getElementById('2'); // Container für die Liste
+            const clearAllButton = document.getElementById('clearAll');
+
+            if (!inputFieldText.trim()) {
+                alert("Das Eingabefeld darf nicht leer sein.");
+                return;
+            }
+
+            const li = document.createElement("div"); // Container für Listeneintrag
+
+            // Nummerierung basierend auf der Anzahl der Einträge
+            const itemNumber = ul.children.length + 1;
+
+            // Textinhalt des Eintrags
+            const text = document.createTextNode(`${itemNumber}. ${inputFieldText}`);
+            li.appendChild(text);
+
+            // Checkbox erstellen
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.style.marginLeft = "10px";
+
+            // Löschen-Schaltfläche erstellen
+            const deleteButton = document.createElement("button");
+            deleteButton.innerHTML = "&#x1F5D1;"; // Papierkorb-Icon
+            deleteButton.style.marginLeft = "10px";
+            deleteButton.style.fontSize = "12px";
+            deleteButton.style.display = "none"; // Standardmäßig ausblenden
+
+            // Event-Listener für Checkbox hinzufügen
+            checkbox.addEventListener("change", function () {
+                if (checkbox.checked) {
+                    li.style.textDecoration = "line-through";
+                    deleteButton.style.display = "inline-block"; // Anzeigen, wenn Checkbox aktiviert
+                } else {
+                    li.style.textDecoration = "none";
+                    deleteButton.style.display = "none"; // Ausblenden, wenn Checkbox deaktiviert
+                }
+                saveToLocalStorage();
+            });
+
+            deleteButton.addEventListener("click", function () {
+                ul.removeChild(li);
+                updateNumbers();
+                saveToLocalStorage();
+                toggleClearAllButton();
+            });
+
+            li.appendChild(checkbox);
+            li.appendChild(deleteButton);
+            ul.appendChild(li);
+
+            // Eingabefeld leeren
+            document.getElementById('1').value = "";
+
+            saveToLocalStorage();
+            toggleClearAllButton();
+        }
+
+        function updateNumbers() {
+            const ul = document.getElementById('2');
+            const items = ul.children;
+            for (let i = 0; i < items.length; i++) {
+                const itemText = items[i].firstChild.textContent;
+                const updatedText = itemText.replace(/^\d+\.\s/, `${i + 1}. `);
+                items[i].firstChild.textContent = updatedText;
+            }
+        }
+
+        function saveToLocalStorage() {
+            const ul = document.getElementById('2');
+            const items = ul.children;
+            const tasks = [];
+
+            for (let i = 0; i < items.length; i++) {
+                const text = items[i].firstChild.textContent;
+                const isChecked = items[i].querySelector('input[type="checkbox"]').checked;
+                tasks.push({ text, isChecked });
+            }
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadFromLocalStorage() {
+            const ul = document.getElementById('2');
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            tasks.forEach(task => {
+                const li = document.createElement("div"); // Container für Listeneintrag
+
+                const text = document.createTextNode(task.text);
+                li.appendChild(text);
+
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.style.marginLeft = "10px";
+                checkbox.checked = task.isChecked;
+                if (task.isChecked) {
+                    li.style.textDecoration = "line-through";
+                }
+
+                const deleteButton = document.createElement("button");
+                deleteButton.innerHTML = "&#x1F5D1;"; // Papierkorb-Icon
+                deleteButton.style.marginLeft = "10px";
+                deleteButton.style.fontSize = "12px";
+                deleteButton.style.display = task.isChecked ? "inline-block" : "none";
+
+                checkbox.addEventListener("change", function () {
+                    if (checkbox.checked) {
+                        li.style.textDecoration = "line-through";
+                        deleteButton.style.display = "inline-block";
+                    } else {
+                        li.style.textDecoration = "none";
+                        deleteButton.style.display = "none";
+                    }
+                    saveToLocalStorage();
+                });
+
+                deleteButton.addEventListener("click", function () {
+                    ul.removeChild(li);
+                    updateNumbers();
+                    saveToLocalStorage();
+                    toggleClearAllButton();
+                });
+
+                li.appendChild(checkbox);
+                li.appendChild(deleteButton);
+                ul.appendChild(li);
+            });
+
+            toggleClearAllButton();
+        }
+
+        function toggleClearAllButton() {
+            const ul = document.getElementById('2');
+            const clearAllButton = document.getElementById('clearAll');
+            clearAllButton.style.display = ul.children.length > 0 ? "block" : "none";
+        }
+
+        function clearAllTasks() {
+            const ul = document.getElementById('2');
+            ul.innerHTML = "";
+            saveToLocalStorage();
+            toggleClearAllButton();
+        }
+
+        // Beim Laden der Seite die gespeicherten Aufgaben laden
+        window.onload = loadFromLocalStorage;
+    </script>
+    <title>My Simple TODO-List</title>
+</head>
+
+<body>
+    <h1>TODO-List</h1>
+
+    <div id="3">
+        <input id="1" type="text" placeholder="Task...">
+        <button onclick="addElement()">Add</button>
+        <button onclick="clearAllTasks()">&#x1F5D1; Alles löschen</button>
+    </div>
+    <br><br>
+    <p style="text-decoration: underline;"><b>Todo'S</b></p>
+    <div id="2"></div>
+</body>
+
+</html>
